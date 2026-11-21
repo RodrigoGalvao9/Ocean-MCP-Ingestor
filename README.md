@@ -157,7 +157,7 @@ workflow **Ingestão** em **Actions → Ingestão → Run workflow**.
 |---|---|
 | `search_maritime_knowledge`, `list_knowledge_topics` | implementadas (aliases temporários: `buscar_conhecimento`, `listar_topicos`) |
 | `get_marine_conditions` | implementada (Open-Meteo, cache de 30 min, gazetteer PE/BA/SE/RN/MA) |
-| `get_tide_table` | fase 2 (em andamento) |
+| `get_tide_table` | fase 2 (em andamento; carga de eventos pronta, falta a ferramenta) |
 | `get_fishing_closures` | fase 3 |
 | `search_vessels` | fase 4 |
 | `find_fish_markets` | fase 5 |
@@ -183,6 +183,13 @@ O PostgreSQL fica em uma instância do Neon. Copie a URL de conexão do painel (
 `python -m ocean.storage.postgres.migrate`. Crie um usuário somente leitura para o servidor e
 use a URL administrativa apenas no GitHub Actions (`DATABASE_URL_ADMIN`).
 Nunca copie as credenciais para o repositório ou para comentários.
+
+### Marés: carga de estações e eventos
+
+`python -m ocean.ingestion.run tides_yearly` lê `data/tide_stations.csv` e `data/tides/*.csv`
+(formato em `data/tides/README.md`) e grava no Postgres, de forma idempotente. Os testes de
+integração rodam com `TEST_DATABASE_URL` apontando para um banco de teste cujo nome contenha
+`test` (o esquema `public` desse banco é apagado a cada teste).
 
 ### Ingestão no GitHub Actions
 

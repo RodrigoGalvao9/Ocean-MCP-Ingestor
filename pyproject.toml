@@ -15,6 +15,7 @@ dependencies = [
     "tenacity>=8.3",
     "psycopg[binary]>=3.2",
     "redis>=5.0",
+    "tzdata>=2024.1",  # fusos horários no Windows e em imagens enxutas
 ]
 
 [project.optional-dependencies]
