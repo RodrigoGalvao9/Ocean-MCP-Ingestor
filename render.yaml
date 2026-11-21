@@ -1,0 +1,39 @@
+# Blueprint do servidor MCP. A ingestão NÃO roda no Render: ela roda no GitHub Actions
+# (.github/workflows/ingest.yml).
+services:
+  - type: web
+    name: ocean-maritime-mcp
+    runtime: docker
+    plan: free
+    # Use a MESMA região da API e do Key Value (a Internal URL do Redis só funciona na mesma região).
+    # region: oregon
+    dockerfilePath: ./Dockerfile.server
+    dockerContext: .
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      # Mesmo valor que a API usa em MCP_AUTH_TOKEN (copie de um para o outro).
+      - key: MCP_AUTH_TOKEN
+        sync: false
+      - key: QDRANT_URL
+        sync: false
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: QDRANT_COLLECTION
+        value: ocean_conhecimento
+      - key: CLOUDFLARE_ACCOUNT_ID
+        sync: false
+      - key: CLOUDFLARE_API_TOKEN
+        sync: false
+      # Usuário SOMENTE LEITURA do Postgres (fase 2 em diante).
+      - key: DATABASE_URL
+        sync: false
+      # Internal URL do Key Value (fase 2 em diante).
+      - key: REDIS_URL
+        sync: false
+      - key: GFW_TOKEN
+        sync: false

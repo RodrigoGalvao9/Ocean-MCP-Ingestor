@@ -1,0 +1,20 @@
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    FASTEMBED_CACHE_DIR=/app/.fastembed_cache \
+    MCP_HOST=0.0.0.0
+
+WORKDIR /app
+
+# Instala o pacote com o extra "server" (a ingestão não entra nesta imagem).
+COPY pyproject.toml README.md ./
+COPY src ./src
+RUN pip install --no-cache-dir ".[server]"
+
+# Baixa o modelo BM25 na build, para não baixar a cada reinício do serviço.
+RUN python -c "from ocean.retrieval.vector.embeddings import embed_sparse; embed_sparse(['x'])"
+
+EXPOSE 8000
+# O Render define a variável PORT; o servidor a lê.
+CMD ["python", "-m", "ocean.server"]

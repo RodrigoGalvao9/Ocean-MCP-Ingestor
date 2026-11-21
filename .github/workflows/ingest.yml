@@ -1,0 +1,44 @@
+name: Ingestão
+
+on:
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Job de ingestão a executar
+        required: true
+        type: choice
+        options:
+          - ping
+          - knowledge_refresh
+          - tides_yearly
+          - mpa_closures
+          - mpa_registry
+          - markets_load
+  # Agendamento: descomente cada linha quando o job correspondente estiver implementado.
+  # schedule:
+  #   - cron: "0 6 * * 1"   # exemplo: toda segunda-feira, 06:00 UTC
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Em Settings > Secrets and variables > Actions.
+      DATABASE_URL: ${{ secrets.DATABASE_URL_ADMIN }}
+      QDRANT_URL: ${{ secrets.QDRANT_URL }}
+      QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+      QDRANT_COLLECTION: ocean_conhecimento
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Instalar
+        run: pip install -e ".[ingest]"
+      - name: Migrar o banco
+        run: python -m ocean.storage.postgres.migrate
+      - name: Executar o job
+        run: python -m ocean.ingestion.run ${{ inputs.job }}
