@@ -177,16 +177,10 @@ e `ALLOWED_TOOLS` com a lista de ferramentas disponíveis.
 
 ### Banco no Neon
 
-O Neon pode hospedar o PostgreSQL usado pelo projeto.
-
-```bash
-npm i -g neon@latest
-neon login
-neon init -y --org-id <org-id> --project-id <project-id> --branch production --services postgres
-neon deploy
-```
-
-O Neon grava as variáveis da branch no `.env` local ou `.env.local`.
+O PostgreSQL fica em uma instância do Neon. Copie a URL de conexão do painel (com
+`sslmode=require`) para `DATABASE_URL` e aplique o esquema com
+`python -m ocean.storage.postgres.migrate`. Crie um usuário somente leitura para o servidor e
+use a URL administrativa apenas no GitHub Actions (`DATABASE_URL_ADMIN`).
 Nunca copie as credenciais para o repositório ou para comentários.
 
 ### Ingestão no GitHub Actions
