@@ -1,7 +1,7 @@
 """Executa um job de ingestão e registra a execução em ingestion_runs.
 
-    python -m ocean.ingestion.run ping
-    python -m ocean.ingestion.run knowledge_refresh
+python -m ocean.ingestion.run ping
+python -m ocean.ingestion.run knowledge_refresh
 """
 
 import argparse

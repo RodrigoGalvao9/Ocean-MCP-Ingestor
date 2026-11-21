@@ -20,3 +20,4 @@ class TideEvent(BaseModel):
     at: datetime  # instante absoluto (UTC)
     kind: Literal["high", "low"]  # preamar ou baixa-mar
     height_m: float
+    edition: int | None = None  # edição da tábua (ex.: 63 para a Tábuas das Marés 2026)

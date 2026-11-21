@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     # Caminhos (só fazem sentido no repositório, não na imagem do servidor)
     migrations_dir: Path = REPO_ROOT / "migrations"
     knowledge_dir: Path = REPO_ROOT / "content" / "knowledge"
+    data_dir: Path = REPO_ROOT / "data"
 
     @property
     def is_production(self) -> bool:

@@ -1,14 +1,14 @@
 """Lê documentos de conhecimento em Markdown com cabeçalho simples:
 
-    ---
-    id: glossario-mares
-    titulo: Preamar e baixa-mar
-    tags: glossario, mares
-    fonte: Nome da fonte
-    url: https://...            (opcional)
-    revisado: sim|nao           (opcional; nao = rascunho a revisar)
-    ---
-    Texto do documento...
+---
+id: glossario-mares
+titulo: Preamar e baixa-mar
+tags: glossario, mares
+fonte: Nome da fonte
+url: https://...            (opcional)
+revisado: sim|nao           (opcional; nao = rascunho a revisar)
+---
+Texto do documento...
 """
 
 from dataclasses import dataclass, field
