@@ -156,7 +156,8 @@ workflow **Ingestão** em **Actions → Ingestão → Run workflow**.
 | Ferramenta | Situação |
 |---|---|
 | `search_maritime_knowledge`, `list_knowledge_topics` | implementadas (aliases temporários: `buscar_conhecimento`, `listar_topicos`) |
-| `get_tide_table`, `get_marine_conditions` | fase 2 |
+| `get_marine_conditions` | implementada (Open-Meteo, cache de 30 min, gazetteer PE/BA/SE/RN/MA) |
+| `get_tide_table` | fase 2 (em andamento) |
 | `get_fishing_closures` | fase 3 |
 | `search_vessels` | fase 4 |
 | `find_fish_markets` | fase 5 |
