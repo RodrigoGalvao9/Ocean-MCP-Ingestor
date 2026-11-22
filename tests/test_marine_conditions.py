@@ -4,6 +4,7 @@ import pytest
 from ocean.retrieval.live import open_meteo
 from ocean.server.tools import marine_conditions as mc
 from ocean.shared.http import SourceUnavailable
+from ocean.storage.cache.redis_cache import Cache
 
 TIMES = [f"2026-11-21T{h:02d}:00" for h in range(0, 24)] + [
     f"2026-11-22T{h:02d}:00" for h in range(0, 24)
@@ -47,6 +48,13 @@ class FakeCache:
 
     def set_json(self, key, value, ttl_seconds):
         self.store[key] = value
+
+
+def test_cache_works_in_memory_without_redis():
+    cache = Cache(url="")
+    cache.set_json("weather:test", {"ok": True}, 60)
+
+    assert cache.get_json("weather:test") == {"ok": True}
 
 
 @pytest.fixture

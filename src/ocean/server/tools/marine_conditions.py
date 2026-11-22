@@ -46,8 +46,12 @@ def _load_payload(place) -> tuple[dict[str, Any] | None, str]:
         return cached, "cache"
     try:
         payload = open_meteo.fetch(place.latitude, place.longitude)
-    except SourceUnavailable:
-        log.warning("open-meteo indisponível", extra={"place": place.label})
+    except SourceUnavailable as exc:
+        log.warning(
+            "open-meteo indisponível",
+            extra={"place": place.label, "error": str(exc)},
+            exc_info=True,
+        )
         stale = cache.get_json(key + ":stale")
         return (stale, "stale") if stale else (None, "none")
     envelope = {"retrieved_at": utcnow().isoformat(), "payload": payload}

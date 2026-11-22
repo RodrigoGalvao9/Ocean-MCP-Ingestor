@@ -5,6 +5,8 @@ Falha de forma silenciosa: sem Redis, o cache simplesmente não existe e a fonte
 
 import json
 import logging
+import threading
+import time
 from typing import Any
 
 import redis
@@ -16,9 +18,11 @@ log = logging.getLogger(__name__)
 
 class Cache:
     def __init__(self, url: str | None = None, prefix: str = "mcp:") -> None:
-        self._url = url or get_settings().redis_url
+        self._url = get_settings().redis_url if url is None else url or None
         self._prefix = prefix
         self._client: redis.Redis | None = None
+        self._memory: dict[str, tuple[float, str]] = {}
+        self._memory_lock = threading.Lock()
 
     def _redis(self) -> redis.Redis | None:
         if not self._url:
@@ -35,19 +39,39 @@ class Cache:
     def get_json(self, key: str) -> Any | None:
         client = self._redis()
         if client is None:
-            return None
+            return self._get_memory(key)
         try:
             raw = client.get(self._prefix + key)
         except redis.RedisError:
             log.warning("cache indisponível (get)", extra={"key": key})
-            return None
-        return json.loads(raw) if raw else None
+            return self._get_memory(key)
+        if raw:
+            value = json.loads(raw)
+            self._set_memory(key, value, ttl_seconds=6 * 3600)
+            return value
+        return self._get_memory(key)
 
     def set_json(self, key: str, value: Any, ttl_seconds: int) -> None:
         client = self._redis()
-        if client is None:
-            return
-        try:
-            client.set(self._prefix + key, json.dumps(value, default=str), ex=ttl_seconds)
-        except redis.RedisError:
-            log.warning("cache indisponível (set)", extra={"key": key})
+        self._set_memory(key, value, ttl_seconds)
+        if client is not None:
+            try:
+                client.set(self._prefix + key, json.dumps(value, default=str), ex=ttl_seconds)
+            except redis.RedisError:
+                log.warning("cache indisponível (set)", extra={"key": key})
+
+    def _get_memory(self, key: str) -> Any | None:
+        with self._memory_lock:
+            entry = self._memory.get(key)
+            if entry is None:
+                return None
+            expires_at, raw = entry
+            if expires_at <= time.monotonic():
+                self._memory.pop(key, None)
+                return None
+        return json.loads(raw)
+
+    def _set_memory(self, key: str, value: Any, ttl_seconds: int) -> None:
+        raw = json.dumps(value, default=str)
+        with self._memory_lock:
+            self._memory[key] = (time.monotonic() + ttl_seconds, raw)
