@@ -186,8 +186,18 @@ Nunca copie as credenciais para o repositório ou para comentários.
 
 ### Marés: carga de estações e eventos
 
-`python -m ocean.ingestion.run tides_yearly` lê `data/tide_stations.csv` e `data/tides/*.csv`
-(formato em `data/tides/README.md`) e grava no Postgres, de forma idempotente. Os testes de
+Os CSVs de marés (`data/tide_stations.csv` e `data/tides/*.csv`) **não vão ao Git**: ficam só na
+máquina de quem os gera a partir dos PDFs da DHN (ver `data/tides/README.md`) e são enviados
+direto ao banco. Por isso o job `tides_yearly` não está no workflow do GitHub Actions. Para
+carregar, use a URL **administrativa** do Neon (nunca a do usuário somente leitura):
+
+```powershell
+$env:DATABASE_URL = "<url administrativa do Neon>"
+python -m ocean.storage.postgres.migrate
+python -m ocean.ingestion.run tides_yearly
+```
+
+O job é idempotente: repetir a carga atualiza as mesmas linhas em vez de duplicar. Os testes de
 integração rodam com `TEST_DATABASE_URL` apontando para um banco de teste cujo nome contenha
 `test` (o esquema `public` desse banco é apagado a cada teste).
 

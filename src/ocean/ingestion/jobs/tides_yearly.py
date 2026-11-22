@@ -16,6 +16,11 @@ log = logging.getLogger(__name__)
 
 def run(settings: Settings) -> JobResult:
     stations_path = settings.data_dir / "tide_stations.csv"
+    if not stations_path.exists():
+        raise FileNotFoundError(
+            f"{stations_path} não existe. Gere os CSVs com "
+            "'python -m ocean.ingestion.parsers.dhn_tides_pdf <pdfs>' (ver data/tides/README.md)."
+        )
     stations = tide_csv.load_stations(stations_path)
     by_id = {s.id: s for s in stations}
 
