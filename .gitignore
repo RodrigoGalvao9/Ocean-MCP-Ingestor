@@ -243,3 +243,5 @@ __pycache__/
 *.py[cod]
 
 pdfs-tabuas/
+data/tides/
+data/tide_stations.csv
