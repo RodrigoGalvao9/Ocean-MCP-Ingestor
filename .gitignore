@@ -241,3 +241,5 @@ yarn-error.log*
 .import_linter_cache/
 __pycache__/
 *.py[cod]
+
+pdfs-tabuas/
