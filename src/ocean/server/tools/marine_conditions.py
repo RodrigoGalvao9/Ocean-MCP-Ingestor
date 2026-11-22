@@ -53,7 +53,9 @@ def _load_payload(place) -> tuple[dict[str, Any] | None, str]:
             exc_info=True,
         )
         stale = cache.get_json(key + ":stale")
-        return (stale, "stale") if stale else (None, "none")
+        if stale:
+            return stale, "stale"
+        return None, f"none:{exc.status_code or 'unknown'}"
     envelope = {"retrieved_at": utcnow().isoformat(), "payload": payload}
     cache.set_json(key, envelope, FRESH_TTL)
     cache.set_json(key + ":stale", envelope, STALE_TTL)
@@ -115,9 +117,16 @@ def get_marine_conditions(place: str, hours: int = 0) -> dict:
 
     envelope, origin = _load_payload(found)
     if envelope is None:
+        if origin == "none:429":
+            reason = (
+                "O Open-Meteo limitou temporariamente as requisições deste serviço (HTTP 429). "
+                "Tente novamente mais tarde ou configure uma cota adequada para produção."
+            )
+        else:
+            reason = "A fonte de condições do mar está temporariamente indisponível."
         return MaritimeDataResponse.unavailable(
             SOURCE,
-            "A fonte de condições do mar está temporariamente indisponível.",
+            reason,
             source_url=open_meteo.SOURCE_URL,
             metadata={"resolved_location": found.model_dump()},
         ).to_tool_result()

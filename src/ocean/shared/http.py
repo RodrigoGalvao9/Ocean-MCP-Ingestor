@@ -10,6 +10,13 @@ DEFAULT_TIMEOUT = httpx.Timeout(10.0, connect=5.0)
 class SourceUnavailable(RuntimeError):
     """A fonte externa não respondeu de forma utilizável (após as novas tentativas)."""
 
+    def __init__(
+        self, message: str, *, status_code: int | None = None, retry_after: str | None = None
+    ) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.retry_after = retry_after
+
 
 def build_client(**kwargs) -> httpx.Client:
     kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
@@ -23,7 +30,7 @@ def _retryable(exc: BaseException) -> bool:
         return True
     if isinstance(exc, httpx.HTTPStatusError):
         code = exc.response.status_code
-        return code == 429 or code >= 500
+        return code >= 500
     return False
 
 
@@ -44,4 +51,10 @@ def request(client: httpx.Client, method: str, url: str, **kwargs) -> httpx.Resp
     try:
         return _send(client, method, url, **kwargs)
     except httpx.HTTPError as exc:
+        if isinstance(exc, httpx.HTTPStatusError):
+            raise SourceUnavailable(
+                f"{method} {url}: {exc}",
+                status_code=exc.response.status_code,
+                retry_after=exc.response.headers.get("Retry-After"),
+            ) from exc
         raise SourceUnavailable(f"{method} {url}: {exc}") from exc

@@ -123,6 +123,16 @@ def test_unavailable_without_cache(monkeypatch, cache):
     assert r["status"] == "unavailable" and r["data"] == {}
 
 
+def test_rate_limit_is_reported_without_retrying(monkeypatch, cache):
+    def fake(lat, lon, client=None):
+        raise SourceUnavailable("limite", status_code=429)
+
+    monkeypatch.setattr(open_meteo, "fetch", fake)
+    r = mc.get_marine_conditions("Recife")
+    assert r["status"] == "unavailable"
+    assert "HTTP 429" in r["limitations"][0]
+
+
 def test_partial_without_waves(monkeypatch, cache):
     _patch_fetch(monkeypatch, waves=False)
     r = mc.get_marine_conditions("Recife")
