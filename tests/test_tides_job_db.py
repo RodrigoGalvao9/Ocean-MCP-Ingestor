@@ -89,3 +89,34 @@ def test_unknown_station_fails_before_touching_db(conn, tmp_path):
 
 def test_psycopg_is_available():
     assert psycopg.__version__
+
+
+def test_tide_table_end_to_end_with_real_postgres(conn, monkeypatch):
+    """Do banco ao contrato: consulta real de estações e eventos."""
+    from datetime import timedelta
+
+    from ocean.domain.models.tide import TideEvent, TideStation
+    from ocean.server.tools import tide_table as tt
+    from ocean.storage.postgres import tides
+
+    now = datetime(2026, 3, 10, 12, 0, tzinfo=UTC)
+    station = TideStation(
+        id="recife-pe", name="Porto do Recife", uf="PE", latitude=-8.0567, longitude=-34.8667,
+        timezone="Etc/GMT+3",
+    )  # fmt: skip
+    events = [
+        TideEvent(station_id="recife-pe", at=now + timedelta(hours=-2 + 6.2 * i),
+                  kind="high" if i % 2 else "low", height_m=2.1 if i % 2 else 0.3, edition=63)
+        for i in range(-3, 14)
+    ]  # fmt: skip
+    tides.upsert_stations(conn, [station])
+    tides.upsert_events(conn, events)
+    monkeypatch.setattr(tt, "_now", lambda: now)
+    monkeypatch.setattr(tt, "connect", lambda: connect(URL))
+
+    result = tt.get_tide_table("Recife", hours=24)
+    assert result["status"] == "ok"
+    assert result["data"]["station"]["id"] == "recife-pe"
+    assert result["data"]["current"]["phase"] == "rising"
+    assert len(result["data"]["events"]) >= 4
+    assert result["metadata"]["editions"] == [63]

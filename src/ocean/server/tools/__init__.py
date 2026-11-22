@@ -2,9 +2,10 @@
 parâmetros de tipo simples (str, int, float, bool), docstring em português com exemplos de uso
 (é por ela que o modelo escolhe a ferramenta), retorno `MaritimeDataResponse.to_tool_result()`."""
 
-from ocean.server.tools import knowledge, marine_conditions
+from ocean.server.tools import knowledge, marine_conditions, tide_table
 
 
 def register_all(mcp) -> None:
     knowledge.register(mcp)
     marine_conditions.register(mcp)
+    tide_table.register(mcp)
