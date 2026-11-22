@@ -1,0 +1,83 @@
+name,uf,kind,latitude,longitude,aliases
+Recife,PE,cidade,-8.0476,-34.8770,
+Olinda,PE,cidade,-8.0089,-34.8553,
+Jaboatão dos Guararapes,PE,cidade,-8.1130,-35.0148,Jaboatao|Piedade
+Cabo de Santo Agostinho,PE,cidade,-8.2862,-35.0347,Cabo
+Porto de Suape,PE,porto,-8.3930,-34.9680,Suape
+Ipojuca,PE,cidade,-8.3996,-35.0620,Porto de Galinhas
+Tamandaré,PE,cidade,-8.7600,-35.1050,
+Itamaracá,PE,ilha,-7.7480,-34.8280,Ilha de Itamaracá
+Fernando de Noronha,PE,ilha,-3.8541,-32.4247,Noronha
+Salvador,BA,cidade,-12.9714,-38.5014,
+Porto de Aratu,BA,porto,-12.7900,-38.4900,Aratu
+Lauro de Freitas,BA,cidade,-12.8978,-38.3210,
+Mata de São João,BA,cidade,-12.5300,-38.2990,Praia do Forte
+Vera Cruz,BA,cidade,-12.9570,-38.6120,Ilha de Itaparica|Itaparica
+Valença,BA,cidade,-13.3700,-39.0730,
+Camamu,BA,cidade,-13.9430,-39.1030,
+Itacaré,BA,cidade,-14.2778,-38.9964,
+Ilhéus,BA,cidade,-14.7889,-39.0459,
+Canavieiras,BA,cidade,-15.6750,-38.9470,
+Porto Seguro,BA,cidade,-16.4435,-39.0643,
+Prado,BA,cidade,-17.3440,-39.2210,
+Caravelas,BA,cidade,-17.7300,-39.2650,
+Aracaju,SE,cidade,-10.9472,-37.0731,
+Barra dos Coqueiros,SE,cidade,-10.9090,-37.0390,
+Estância,SE,cidade,-11.2670,-37.4380,
+Pacatuba,SE,cidade,-10.4510,-36.6510,
+Brejo Grande,SE,cidade,-10.4580,-36.4370,
+Natal,RN,cidade,-5.7945,-35.2110,
+Parnamirim,RN,cidade,-5.9150,-35.2630,
+Tibau do Sul,RN,cidade,-6.1870,-35.0870,Pipa|Praia da Pipa
+Touros,RN,cidade,-5.1990,-35.4610,
+São Miguel do Gostoso,RN,cidade,-5.1230,-35.6370,Gostoso
+Macau,RN,cidade,-5.1130,-36.6340,
+Areia Branca,RN,cidade,-4.9570,-37.1370,
+São Luís,MA,cidade,-2.5307,-44.3068,Sao Luis
+Porto do Itaqui,MA,porto,-2.5700,-44.3700,Itaqui
+Raposa,MA,cidade,-2.4220,-44.0990,
+Alcântara,MA,cidade,-2.4080,-44.4100,
+Cururupu,MA,cidade,-1.8280,-44.8680,
+Barreirinhas,MA,cidade,-2.7580,-42.8240,Lençóis Maranhenses
+Tutóia,MA,cidade,-2.7620,-42.2750,
+Santos,SP,porto,-23.9608,-46.3336,Porto de Santos
+Paranaguá,PR,porto,-25.5160,-48.5090,Porto de Paranaguá
+Barra Norte,PA,porto,1.4350,-49.2217,Barra Norte - Arco Lamoso
+Arquipélago de Fernando de Noronha,PE,porto,-3.8333,-32.4033,
+Igarapé Grande do Curuá,PA,porto,0.7633,-50.1183,
+Ponta da Madeira,MA,porto,-2.5650,-44.3783,Terminal da Ponta da Madeira
+Alumar,MA,porto,-2.6783,-44.3583,Terminal da Alumar
+Luís Correia,PI,porto,-2.8517,-41.6450,Porto de Luís Correia
+Terminal Portuário do Pecém,CE,porto,-3.5350,-38.7983,
+Mucuripe,CE,porto,-3.7150,-38.4767,Porto de Mucuripe - Fortaleza
+Guamaré,RN,porto,-5.1067,-36.3167,Porto de Guamaré
+Cabedelo,PB,porto,-6.9700,-34.8400,Porto de Cabedelo
+Terminal Marítimo Inácio Barbosa,SE,porto,-10.8433,-36.9183,
+Capitania dos Portos de Sergipe,SE,porto,-10.9200,-37.0467,
+Madre de Deus,BA,porto,-12.7500,-38.6233,Porto de Madre de Deus
+Santana,AP,porto,-0.0617,-51.1683,Porto de Santana - Cia Docas de Santana
+Barra do Riacho,ES,porto,-19.8383,-40.0600,Terminal de Barra do Riacho
+Tubarão,ES,porto,-20.2883,-40.2433,Porto de Tubarão
+Vitória,ES,porto,-20.3217,-40.3367,Porto de Vitória
+Ponta do Ubu,ES,porto,-20.7883,-40.5700,Terminal da Ponta do Ubu
+Açu,RJ,porto,-21.8133,-40.9983,Porto do Açu
+Terminal Marítimo de Imbetiba,RJ,porto,-22.3850,-41.7700,
+Ilha dos Guarás,PA,porto,-0.5983,-47.9150,
+Rio de Janeiro,RJ,porto,-22.8967,-43.1667,Porto do Rio de Janeiro - Ilha Fiscal
+Itaguaí,RJ,porto,-22.9317,-43.8417,Porto de Itaguaí
+Forno,RJ,porto,-22.9733,-42.0133,Porto do Forno
+Ilha Guaíba,RJ,porto,-23.0000,-44.0317,Terminal da Ilha Guaíba
+Angra dos Reis,RJ,porto,-23.0133,-44.3150,Porto de Angra dos Reis
+São Sebastião,SP,porto,-23.8100,-45.3983,Porto de São Sebastião
+Terminal Portuário da Ponta do Félix,PR,porto,-25.4550,-48.6783,
+Barra de Paranaguá,PR,porto,-25.5400,-48.2950,Barra de Paranaguá - Canal Sueste
+Fundeadouro de Salinópolis,PA,porto,-0.6167,-47.3500,
+São Francisco do Sul,SC,porto,-26.2450,-48.6417,Porto de São Francisco do Sul
+Itajaí,SC,porto,-26.9050,-48.6533,Porto de Itajaí
+Florianópolis,SC,porto,-27.5883,-48.5567,Porto de Florianópolis
+Imbituba,SC,porto,-28.2333,-48.6500,Porto de Imbituba
+Rio Grande,RS,porto,-32.1383,-52.1033,Porto do Rio Grande
+Ilha do Mosqueiro,PA,porto,-1.1650,-48.4733,
+Belém,PA,porto,-1.3967,-48.4933,Porto de Belém
+Vila do Conde,PA,porto,-1.5383,-48.7533,Porto de Vila do Conde
+Atracadouro de Breves,PA,porto,-1.6917,-50.4833,
