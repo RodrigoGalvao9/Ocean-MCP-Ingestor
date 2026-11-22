@@ -19,7 +19,7 @@ def run(settings: Settings) -> JobResult:
     if not stations_path.exists():
         raise FileNotFoundError(
             f"{stations_path} não existe. Gere os CSVs com "
-            "'python -m ocean.ingestion.parsers.dhn_tides_pdf <pdfs>' (ver data/tides/README.md)."
+            "'python -m ocean.ingestion.parsers.dhn_tides_pdf <pdfs>' (ver docs/mares-csv.md)."
         )
     stations = tide_csv.load_stations(stations_path)
     by_id = {s.id: s for s in stations}

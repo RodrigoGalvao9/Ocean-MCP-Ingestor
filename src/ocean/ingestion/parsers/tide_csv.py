@@ -1,4 +1,4 @@
-"""Leitura do CSV padronizado de estações e eventos de maré (ver data/tides/README.md).
+"""Leitura do CSV padronizado de estações e eventos de maré (ver docs/mares-csv.md).
 
 É a porta de entrada comum: um parser de PDF da DHN deve gerar este mesmo formato, e tábuas
 digitadas à mão (plano B) o usam diretamente.

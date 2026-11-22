@@ -243,5 +243,7 @@ __pycache__/
 *.py[cod]
 
 pdfs-tabuas/
-data/tides/
-data/tide_stations.csv
+
+# Dados de marés da DHN: ficam só na máquina local e vão direto ao banco
+# Dados gerados ou curados ficam só no banco e na máquina de quem os gera, nunca no Git.
+data/

@@ -186,8 +186,8 @@ Nunca copie as credenciais para o repositório ou para comentários.
 
 ### Marés: carga de estações e eventos
 
-Os CSVs de marés (`data/tide_stations.csv` e `data/tides/*.csv`) **não vão ao Git**: ficam só na
-máquina de quem os gera a partir dos PDFs da DHN (ver `data/tides/README.md`) e são enviados
+Nada de `data/` vai ao Git (a pasta está no `.gitignore`). Os CSVs de marés ficam só na
+máquina de quem os gera a partir dos PDFs da DHN (ver `docs/mares-csv.md`) e são enviados
 direto ao banco. Por isso o job `tides_yearly` não está no workflow do GitHub Actions. Para
 carregar, use a URL **administrativa** do Neon (nunca a do usuário somente leitura):
 

@@ -10,7 +10,7 @@ Uso:
         --stations data/tide_stations.csv --out-dir data/tides
 
 Gera um CSV de eventos por porto e cria ou atualiza a linha da estação, no formato de
-data/tides/README.md. Termina com código 1 se encontrar erros (avisos não bloqueiam).
+docs/mares-csv.md. Termina com código 1 se encontrar erros (avisos não bloqueiam).
 """
 
 import argparse
