@@ -1,8 +1,12 @@
 # Eventos de maré (preamar e baixa-mar)
 
+Este guia é destinado a quem prepara dados de maré para a ingestão local. Os CSVs gerados não
+devem ser versionados neste repositório.
+
 ## Gerar os CSVs a partir dos PDFs da DHN
 
-```
+```powershell
+.\.venv\Scripts\Activate.ps1
 pip install -e ".[ingest]"
 python -m ocean.ingestion.parsers.dhn_tides_pdf pasta/*.pdf --stations data/tide_stations.csv --out-dir data/tides
 ```

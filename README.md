@@ -1,212 +1,111 @@
 # Ocean MCP + Ingestor
 
-Servidor MCP **somente leitura** e ingestão de dados marítimos brasileiros (condições do mar,
-marés, defeso, embarcações, onde vender pescado e base de conhecimento). Alimenta o agente
-[`ocean-agent-api`](https://github.com/RodrigoGalvao9/ocean-agent-api).
+> Dados marítimos brasileiros para agentes de IA: condições do mar, marés e conhecimento
+> operacional em uma interface MCP somente leitura.
 
-O projeto está dividido entre execução local, ingestão automática e hospedagem em nuvem.
-Qualquer pessoa pode usar o servidor como desenvolvedor, contanto que respeite as fontes,
-os créditos dos serviços externos e as regras de uso não comercial das APIs.
+[![CI](https://github.com/RodrigoGalvao9/Ocean-MCP-Ingestor/actions/workflows/ci.yml/badge.svg)](https://github.com/RodrigoGalvao9/Ocean-MCP-Ingestor/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![MCP](https://img.shields.io/badge/Protocol-MCP-5B5BD6)](https://modelcontextprotocol.io/)
 
-| Componente | Comando | Hospedagem recomendada |
+O **Ocean** conecta aplicações de IA a informações marítimas brasileiras com respostas
+estruturadas, proveniência e limitações explícitas. O servidor alimenta o
+[`ocean-agent-api`](https://github.com/RodrigoGalvao9/ocean-agent-api) e pode ser executado
+localmente ou hospedado em nuvem.
+
+## Por que usar
+
+| Capacidade | Benefício |
+|---|---|
+| MCP padronizado | Integração direta com agentes e clientes compatíveis com MCP |
+| Dados marítimos | Condições do mar e tábuas de maré para locais brasileiros |
+| Respostas confiáveis | Fonte, momento da consulta, atualidade e limitações no retorno |
+| Arquitetura modular | PostgreSQL, Qdrant, Redis e fontes ao vivo sem acoplamento indevido |
+| Operação segura | Servidor de consulta sem operações de escrita para consumidores |
+
+## Funcionalidades disponíveis
+
+| Ferramenta | O que entrega | Status |
 |---|---|---|
-| Servidor MCP | `python -m ocean.server` | Render |
-| Ingestão | `python -m ocean.ingestion.run <job>` | GitHub Actions |
-| Banco PostgreSQL | migrations em `migrations/` | Neon ou Supabase |
-| Busca vetorial | coleção configurada no Qdrant | Qdrant Cloud |
-| Cache | Redis | Render Key Value ou Redis compatível |
+| `get_marine_conditions` | Vento, rajadas, ondas, temperatura e previsão | Disponível |
+| `get_tide_table` | Estação DHN mais próxima, fase e eventos de maré | Disponível |
+| `search_maritime_knowledge` | Busca semântica em conteúdo marítimo | Disponível |
+| `list_knowledge_topics` | Lista os tópicos indexados | Disponível |
+| `get_fishing_closures` | Períodos de defeso | Planejada |
+| `search_vessels` | Busca de embarcações | Planejada |
+| `find_fish_markets` | Locais para comercialização de pescado | Planejada |
 
-## Uso público
+## Início rápido
 
-O projeto oferece ferramentas MCP de consulta. Ele não altera o estado das fontes externas
-e não expõe operações de escrita para seus consumidores.
-
-O `MCP_AUTH_TOKEN` protege o servidor em produção. Quem consumir o MCP precisa enviar o mesmo
-Bearer token usado pela API `ocean-agent-api`. O `/health` continua público e serve apenas para
-confirmar que o processo está operacional.
-
-## Regras do projeto
-
-1. O servidor é **somente leitura**: nenhuma ferramenta escreve estado.
-2. O caminho de requisição lê Postgres, Qdrant e cache. Somente fontes ao vivo podem acessar
-   serviços externos, usando timeout, novas tentativas limitadas e fallback para cache marcado
-   como `stale`.
-3. Toda ferramenta devolve `MaritimeDataResponse` (`src/ocean/shared/provenance.py`), com fonte,
-   data da consulta, momento do dado e limitações.
-4. Interpretação determinística, como escala Beaufort e fase da maré, fica em `domain/services`.
-   O modelo de linguagem explica o resultado, mas não calcula a regra.
-5. `server` e `ingestion` nunca importam um ao outro. Esse limite arquitetural é verificado
-   pelo `lint-imports` no CI.
-6. GFW e Open-Meteo exigem uso não comercial. Verifique os termos das fontes antes de ampliar
-   o projeto ou de oferecer o serviço a terceiros.
-
-## Estrutura
-
-```
-src/ocean/
-  server/       MCP: ferramentas, autenticação, /health
-  ingestion/    jobs, parsers, coletores
-  domain/       modelos e serviços de interpretação
-  retrieval/    vector (Qdrant) e structured (Postgres)
-  storage/      postgres (conexão, migrações, execuções), cache (Redis)
-  shared/       config, logging, http, proveniência
-migrations/     SQL do esquema (a ingestão é a dona do esquema)
-content/knowledge/   documentos do RAG (Markdown com cabeçalho)
-data/           tabelas curadas (CSV)
-tests/
-```
-
-## Primeiros passos
-
-```bash
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1     # Windows PowerShell
-# source .venv/bin/activate      # Linux/macOS
-pip install -e ".[server,ingest,dev]"
-Copy-Item .env.example .env       # Windows
-# cp .env.example .env           # Linux/macOS
-```
-
-Edite o `.env` com as credenciais próprias. Nunca faça commit desse arquivo.
-Use os nomes da seção "Variáveis de ambiente" abaixo.
-
-```bash
-pytest -q
-ruff check .
-lint-imports
-```
-
-Use Python **3.12** no desenvolvimento, na imagem Docker e no GitHub Actions.
-Depois da primeira instalação bem-sucedida, fixe o ambiente com
-`pip freeze > constraints.txt`.
-
-## Variáveis de ambiente
-
-Crie valores próprios em cada provedor. Não reutilize credenciais do repositório.
-
-| Variável | Uso |
-|---|---|
-| `MCP_AUTH_TOKEN` | Protege o servidor MCP em produção |
-| `DATABASE_URL` | Banco PostgreSQL acessado localmente ou pelo servidor |
-| `DATABASE_URL_UNPOOLED` | URL direta do Neon, quando fornecida pelo provedor |
-| `REDIS_URL` | Cache Redis |
-| `QDRANT_URL` | Endpoint da instância Qdrant |
-| `QDRANT_API_KEY` | Chave da instância Qdrant |
-| `QDRANT_COLLECTION` | Coleção padrão, por exemplo `ocean_conhecimento` |
-| `CLOUDFLARE_ACCOUNT_ID` | Conta usada para embeddings |
-| `CLOUDFLARE_API_TOKEN` | Token Cloudflare com acesso ao modelo |
-
-### Variáveis reservadas à ingestão
-
-No GitHub Actions, configure estes secrets em
-**Settings → Secrets and variables → Actions**:
-
-- `DATABASE_URL_ADMIN`
-- `QDRANT_URL`
-- `QDRANT_API_KEY`
-- `CLOUDFLARE_ACCOUNT_ID`
-- `CLOUDFLARE_API_TOKEN`
-
-`DATABASE_URL_ADMIN` é a URL de um usuário administrativo do PostgreSQL. Ela é usada somente
-pelo workflow de ingestão e pelas migrations. O servidor público deve usar preferencialmente
-`DATABASE_URL` associado a um usuário somente leitura.
-
-### Rodar o servidor local
-
-```bash
-python -m ocean.server             # http://localhost:8000  (/health, MCP em /mcp)
-```
-
-Verifique a instalação:
-
-```bash
-curl http://localhost:8000/health
-```
-
-Resposta esperada:
-
-```json
-{"status":"ok"}
-```
-
-### Indexar a base de conhecimento
-
-```bash
-python -m ocean.ingestion.run knowledge_refresh
-```
-
-Os arquivos de `content/knowledge/*.md` vêm marcados `revisado: nao`: são rascunhos a revisar com fonte oficial.
-A coleção padrão é `ocean_conhecimento` (não mexe na coleção antiga `conhecimento_maritimo`).
-
-### Banco de dados local ou no Neon
-
-Copie a URL PostgreSQL fornecida pelo painel do Neon ou Supabase para `DATABASE_URL` no `.env`.
-Em conexões externas, normalmente a URL inclui `sslmode=require`.
-
-```bash
-python -m ocean.storage.postgres.migrate      # aplica migrations/*.sql
-python -m ocean.ingestion.run ping            # confere a conexão e registra uma execução
-```
-
-Após configurar o segredo `DATABASE_URL_ADMIN`, os mesmos migrations e jobs podem rodar pelo
-workflow **Ingestão** em **Actions → Ingestão → Run workflow**.
-
-## Ferramentas MCP
-
-| Ferramenta | Situação |
-|---|---|
-| `search_maritime_knowledge`, `list_knowledge_topics` | implementadas (aliases temporários: `buscar_conhecimento`, `listar_topicos`) |
-| `get_marine_conditions` | implementada (Open-Meteo, cache de 30 min, gazetteer PE/BA/SE/RN/MA) |
-| `get_tide_table` | implementada (estação DHN mais próxima, fase, próximas preamares e baixa-mares) |
-| `get_fishing_closures` | fase 3 |
-| `search_vessels` | fase 4 |
-| `find_fish_markets` | fase 5 |
-
-## Deploy
-
-### Servidor MCP no Render
-
-1. Clique em **New → Blueprint**.
-2. Selecione o repositório e o arquivo `render.yaml`.
-3. Preencha todas as variáveis marcadas `sync: false`.
-4. Defina `MCP_AUTH_TOKEN` com o mesmo valor usado pela API consumidora.
-5. Configure `DATABASE_URL` com uma conta PostgreSQL somente leitura.
-6. Aguarde o health check em `/health`.
-
-Na API separada `ocean-agent-api`, configure `MCP_SERVER_URL` com o endereço público do MCP
-e `ALLOWED_TOOLS` com a lista de ferramentas disponíveis.
-
-### Banco no Neon
-
-O PostgreSQL fica em uma instância do Neon. Copie a URL de conexão do painel (com
-`sslmode=require`) para `DATABASE_URL` e aplique o esquema com
-`python -m ocean.storage.postgres.migrate`. Crie um usuário somente leitura para o servidor e
-use a URL administrativa apenas no GitHub Actions (`DATABASE_URL_ADMIN`).
-Nunca copie as credenciais para o repositório ou para comentários.
-
-### Marés: carga de estações e eventos
-
-Nada de `data/` vai ao Git (a pasta está no `.gitignore`). Os CSVs de marés ficam só na
-máquina de quem os gera a partir dos PDFs da DHN (ver `docs/mares-csv.md`) e são enviados
-direto ao banco. Por isso o job `tides_yearly` não está no workflow do GitHub Actions. Para
-carregar, use a URL **administrativa** do Neon (nunca a do usuário somente leitura):
+Requisitos: Python 3.12 e, para o servidor completo, as credenciais descritas em
+[`docs/configuration.md`](docs/configuration.md).
 
 ```powershell
-$env:DATABASE_URL = "<url administrativa do Neon>"
-python -m ocean.storage.postgres.migrate
-python -m ocean.ingestion.run tides_yearly
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e ".[server,ingest,dev]"
+Copy-Item .env.example .env
+python -m ocean.server
 ```
 
-O job é idempotente: repetir a carga atualiza as mesmas linhas em vez de duplicar. Os testes de
-integração rodam com `TEST_DATABASE_URL` apontando para um banco de teste cujo nome contenha
-`test` (o esquema `public` desse banco é apagado a cada teste).
+O servidor ficará disponível em `http://localhost:8000`. Verifique a saúde da aplicação:
 
-### Ingestão no GitHub Actions
+```powershell
+Invoke-RestMethod http://localhost:8000/health
+```
 
-Crie os secrets administrativos descritos acima e execute
-**Actions → Ingestão → Run workflow**, escolhendo o job desejado.
+Consulte exemplos completos de inicialização MCP e chamadas JSON em
+[`docs/mcp.md`](docs/mcp.md).
+
+## Arquitetura em uma visão
+
+```text
+Cliente MCP / ocean-agent-api
+             |
+             v
+       Servidor Ocean
+       /health  /mcp
+       |        |
+       |        +--> Ferramentas de consulta
+       |              |--> Open-Meteo (condições)
+       |              |--> PostgreSQL (marés e dados estruturados)
+       |              |--> Qdrant + embeddings (conhecimento)
+       |              +--> Redis (cache)
+       |
+       +--> Ingestão local ou GitHub Actions
+             |--> PDFs/CSV da DHN
+             |--> Conteúdo de conhecimento
+             +--> PostgreSQL e Qdrant
+```
+
+O servidor público usa uma conta de banco somente leitura. A ingestão e as migrations usam
+credenciais administrativas separadas. Para decisões de arquitetura, consulte
+[`docs/architecture.md`](docs/architecture.md).
 
 ## Documentação
 
-Visão do projeto e guia técnico (decisões, contrato, plano por fases): documentos "Ocean — Visão do Projeto"
-e "Ocean — Guia Técnico".
+| Guia | Público |
+|---|---|
+| [`docs/mcp.md`](docs/mcp.md) | Consumidores MCP e integração |
+| [`docs/configuration.md`](docs/configuration.md) | Variáveis de ambiente e configuração |
+| [`docs/development.md`](docs/development.md) | Contribuidores e desenvolvimento local |
+| [`docs/operations.md`](docs/operations.md) | Execução, deploy e observabilidade |
+| [`docs/ingestion.md`](docs/ingestion.md) | Jobs, GitHub Actions e cargas |
+| [`docs/mares-csv.md`](docs/mares-csv.md) | Conversão das tábuas DHN para CSV |
+| [`docs/dados.md`](docs/dados.md) | Dados curados e contratos de CSV |
+| [`docs/architecture.md`](docs/architecture.md) | Limites e decisões técnicas |
+
+## Fontes e limitações
+
+As respostas não substituem avisos oficiais da Marinha do Brasil. Condições meteorológicas e
+ondas vêm de modelos numéricos; marés são previsões astronômicas e podem sofrer influência de
+vento, pressão, chuva e vazão de rios.
+
+Open-Meteo e GFW possuem regras de atribuição e uso não comercial. Antes de oferecer o serviço
+a terceiros, confira os termos de cada fonte. O projeto é somente leitura para seus
+consumidores e não garante segurança de navegação.
+
+## Licença e contribuição
+
+Antes de redistribuir dados de terceiros, confirme as licenças e os termos das fontes. Para
+executar a validação local, siga [`docs/development.md`](docs/development.md). Pull requests
+devem preservar os contratos de proveniência e as regras de importação do projeto.
