@@ -1,6 +1,6 @@
 """Testes do parser dos PDFs da DHN com páginas sintéticas (o layout imita as edições de 2026).
-Os PDFs reais são protegidos por termos de uso e não ficam no repositório: se DHN_PDF_DIR
-apontar para uma pasta com eles, o último teste também os confere."""
+Os PDFs reais podem estar sujeitos a termos de uso (a verificar) e não ficam no repositório:
+se DHN_PDF_DIR apontar para uma pasta com eles, o último teste também os confere."""
 
 import calendar
 import math
@@ -44,13 +44,20 @@ def synthetic_year() -> list[tuple[datetime, float]]:
     return events
 
 
-def page_words(page: int, events, glue_weekday=False) -> list[dict]:
+def page_words(page: int, events, glue_weekday=False, nautical=False) -> list[dict]:
     words = []
+
+    def fmt(height):
+        return f"{height:.2f}".replace(".", ",") if nautical else f"{height:.2f}"
 
     def add(text, x0, top):
         words.append({"text": text, "x0": x0, "top": top})
 
-    for top, text in zip((55.7, 66.1, 75.8), HEADER.values(), strict=True):
+    header = dict(HEADER)
+    if nautical:  # estilo do Terminal da Ponta do Félix: sem "UTC" e com vírgula decimal
+        header["coords"] = header["coords"].replace("UTC -03.0", "+03.0")
+        header["datum"] = header["datum"].replace("1.28", "1,28")
+    for top, text in zip((55.7, 66.1, 75.8), header.values(), strict=True):
         x = 80.0
         for token in text.split():
             add(token, x, top)
@@ -76,23 +83,25 @@ def page_words(page: int, events, glue_weekday=False) -> list[dict]:
                     weekday = WEEKDAYS[datetime(YEAR, month, day).weekday()]
                     if glue_weekday:
                         add(f"{weekday}{at:%H%M}", start - 18, top)
-                        add(f"{height:.2f}", start + 23.6, top)
+                        add(fmt(height), start + 23.6, top)
                         top += 8
                         continue
                     add(weekday, start - 18, top)
                 add(f"{at:%H%M}", start + 4.4, top)
-                add(f"{height:.2f}", start + 23.6, top)
+                add(fmt(height), start + 23.6, top)
                 top += 8
             top += 9
     return words
 
 
-def parse_year(events, glue_weekday=False, drop=None):
+def parse_year(events, glue_weekday=False, drop=None, nautical=False):
     table_days, errors = [], []
     header = None
     for page in range(3):
         page_events = [e for e in events if page * 4 < e[0].month <= page * 4 + 4 and e != drop]
-        header, days, page_errors = d.parse_page(page_words(page, page_events, glue_weekday))
+        header, days, page_errors = d.parse_page(
+            page_words(page, page_events, glue_weekday, nautical)
+        )
         table_days.extend(days)
         errors.extend(page_errors)
     return d.ParsedTable(header=header, days=table_days, errors=errors)
@@ -114,6 +123,21 @@ def test_weekday_glued_to_time_is_handled():
     assert len(d.build_rows(table)) == len(synthetic_year())
 
 
+def test_nautical_header_and_decimal_comma():
+    events = synthetic_year()
+    table = parse_year(events, nautical=True)
+    rows = d.build_rows(table)
+    assert table.errors == [] and table.header.utc_offset_hours == -3.0
+    assert table.header.mean_level_m == 1.28
+    assert [(r.local, r.height_m) for r in rows] == events
+
+
+def test_offset_incompatible_with_longitude_is_rejected():
+    text = "\n".join(HEADER.values()).replace("UTC -03.0", "UTC +05.0")
+    with pytest.raises(ValueError, match="incompatível"):
+        d.parse_header(text)
+
+
 def test_event_missing_in_source_is_a_warning_and_kinds_stay_correct():
     events = synthetic_year()
     missing = events[700]  # um evento qualquer no meio do ano
@@ -132,6 +156,22 @@ def test_missing_day_is_an_error():
     table = parse_year(events)
     d.build_rows(table)
     assert any("dia ausente: 10/05" in e for e in table.errors)
+
+
+def test_days_with_five_or_six_extremes_only_warn():
+    table = parse_year(synthetic_year())
+    day = next(x for x in table.days if (x.month, x.day) == (3, 11))
+    day.readings = [("0010", 0.4), ("0300", 0.5), ("0400", 0.45), *day.readings]  # 6 ou 7
+    d.build_rows(table)
+    assert not any("11/03" in e for e in table.errors)
+    assert any("11/03" in w and "leituras" in w for w in table.warnings)
+
+
+def test_token_count_mismatch_is_an_error():
+    words = page_words(0, [e for e in synthetic_year() if e[0].month <= 4])
+    words.append({"text": "1234", "x0": 60.0, "top": 400.0})  # horário solto, sem altura
+    _, _, errors = d.parse_page(words)
+    assert any("diferem" in e or "ilegível" in e for e in errors)
 
 
 def test_header_and_station_row():
@@ -189,4 +229,4 @@ def test_real_pdfs():
         table = d.parse_pdf(pdf)
         rows = d.build_rows(table)
         assert table.errors == [], pdf.name
-        assert 1400 <= len(rows) <= 1420, pdf.name
+        assert 1350 <= len(rows) <= 2600, pdf.name  # maré mista tem mais extremos

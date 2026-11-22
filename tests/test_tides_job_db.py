@@ -18,6 +18,12 @@ pytestmark = pytest.mark.skipif(
     not URL or "test" not in urlparse(URL).path, reason="TEST_DATABASE_URL não definido"
 )
 
+STATIONS = (
+    "id,name,uf,latitude,longitude,chart_number,timezone,datum_note\n"
+    "natal-rn,Porto de Natal,RN,-5.78,-35.21,,America/Fortaleza,\n"
+    "recife-pe,Porto do Recife,PE,-8.0567,-34.8667,902,Etc/GMT+3,\n"
+)
+
 EVENTS = (
     "station_id,local_datetime,kind,height_m,edition\n"
     "natal-rn,2026-01-01 03:12,low,0.35,63\n"
@@ -39,9 +45,7 @@ def conn():
 def _settings(tmp_path) -> Settings:
     data = tmp_path / "data"
     (data / "tides").mkdir(parents=True)
-    (data / "tide_stations.csv").write_text(
-        (REPO_ROOT / "data" / "tide_stations.csv").read_text(encoding="utf-8"), encoding="utf-8"
-    )
+    (data / "tide_stations.csv").write_text(STATIONS, encoding="utf-8")
     (data / "tides" / "natal.csv").write_text(EVENTS, encoding="utf-8")
     return Settings(_env_file=None, database_url=URL, data_dir=data)
 
@@ -50,9 +54,9 @@ def test_job_loads_and_is_idempotent(conn, tmp_path):
     settings = _settings(tmp_path)
     first = tides_yearly.run(settings)
     second = tides_yearly.run(settings)
-    assert first.rows == second.rows == 5 + 2 and first.source_version == "edições 63"
+    assert first.rows == second.rows == 2 + 2 and first.source_version == "edições 63"
     assert conn.execute("SELECT count(*) AS n FROM tide_events").fetchone()["n"] == 2
-    assert conn.execute("SELECT count(*) AS n FROM tide_stations").fetchone()["n"] == 5
+    assert conn.execute("SELECT count(*) AS n FROM tide_stations").fetchone()["n"] == 2
     row = conn.execute(
         "SELECT event_at, kind, height_m FROM tide_events WHERE kind = 'low'"
     ).fetchone()

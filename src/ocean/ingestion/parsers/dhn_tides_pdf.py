@@ -37,12 +37,13 @@ UF_BY_STATE = {
     "SAO PAULO": "SP", "PARANA": "PR", "SANTA CATARINA": "SC", "RIO GRANDE DO SUL": "RS",
 }  # fmt: skip
 _TIME = re.compile(r"^\d{4}$")
-_HEIGHT = re.compile(r"^-?\d{1,2}\.\d{2}$")
+_HEIGHT = re.compile(r"^-?\d{1,2}[.,]\d{2}$")  # alguns PDFs usam vírgula decimal
 _DAY = re.compile(r"^\d{1,2}$")
 _GROUP_MARGIN = 24.0  # o número do dia fica ~16 pt à esquerda de "HORA"
 _LINE_TOLERANCE = 3.0
 # O dia da semana ("DOM") às vezes cola no horário que vem logo depois ("DOM1040").
 _WEEKDAY_GLUED = re.compile(r"^[A-ZÀ-Ý]{3}(?=\d{4}$)")
+MAX_READINGS_PER_DAY = 10
 MIN_GAP = timedelta(hours=2, minutes=30)
 MAX_GAP = timedelta(hours=9, minutes=30)
 
@@ -105,6 +106,10 @@ def _coordinate(text: str, label: str) -> float:
     return round(-value if hemisphere in "SWO" else value, 4)
 
 
+def _number(text: str) -> float:
+    return float(text.replace(",", "."))
+
+
 def parse_header(text: str) -> Header:
     title = re.search(
         r"^(?P<name>.+?)\s*(?:\((?P<state>[^)]*)\))?\s*-\s*(?P<year>\d{4})\s*$", text, re.M
@@ -114,19 +119,27 @@ def parse_header(text: str) -> Header:
     state = title.group("state")
     if state:
         state = re.sub(r"^ESTADO D[AEO]\s+", "", state.strip(), flags=re.I)
-    fuso = re.search(r"Fuso UTC\s*([+-]?\d+(?:\.\d+)?)", text)
-    mean = re.search(r"N[ií]vel M[ée]dio\s+(-?\d+(?:\.\d+)?)\s*m", text)
+    fuso = re.search(r"Fuso\s+(UTC\s*)?([+-]?\d+(?:[.,]\d+)?)", text)
+    mean = re.search(r"N[ií]vel M[ée]dio\s+(-?\d+(?:[.,]\d+)?)\s*m", text)
     chart = re.search(r"Carta\s+(\S+)", text)
     if not fuso or not mean:
         raise ValueError("fuso horário ou nível médio não encontrados no cabeçalho")
+    latitude, longitude = _coordinate(text, "Latitude"), _coordinate(text, "Longitude")
+    offset = _number(fuso.group(2))
+    if not fuso.group(1):
+        # Sem "UTC", "Fuso +03.0" segue a convenção náutica: horas a SOMAR ao horário local
+        # para chegar a UTC, ou seja, UTC-3.
+        offset = -offset
+    if abs(offset - longitude / 15) > 2.0:
+        raise ValueError(f"fuso UTC{offset:+.1f} incompatível com a longitude {longitude}")
     return Header(
         name=title.group("name").strip(),
         state=state,
         year=int(title.group("year")),
-        latitude=_coordinate(text, "Latitude"),
-        longitude=_coordinate(text, "Longitude"),
-        utc_offset_hours=float(fuso.group(1)),
-        mean_level_m=float(mean.group(1)),
+        latitude=latitude,
+        longitude=longitude,
+        utc_offset_hours=offset,
+        mean_level_m=_number(mean.group(1)),
         chart_number=chart.group(1) if chart else None,
     )
 
@@ -175,25 +188,35 @@ def parse_page(words: list[Word]) -> tuple[Header, list[RawDay], list[str]]:
             if not valid:
                 errors.append(f"mês {month} dia {current.day}: linha ilegível {tokens}")
                 continue
-            current.readings.extend((t, float(h)) for t, h in pairs)
+            current.readings.extend((t, _number(h)) for t, h in pairs)
+    # Conferência independente do layout: todo horário (HHMM) da área da tabela precisa ter
+    # virado uma leitura; se sobrar ou faltar token, algo foi lido errado.
+    tokens = [_WEEKDAY_GLUED.sub("", w["text"]) for w in words if w["top"] > table_top + 3]
+    time_tokens = sum(bool(_TIME.match(t)) for t in tokens)
+    height_tokens = sum(bool(_HEIGHT.match(t)) for t in tokens)
+    parsed = sum(len(day.readings) for day in days)
+    if not time_tokens == height_tokens == parsed:
+        errors.append(
+            f"leituras lidas ({parsed}) diferem dos horários ({time_tokens}) "
+            f"e alturas ({height_tokens}) da página"
+        )
     return header, days, errors
 
 
 def extract_page_words(page) -> list[Word]:
-    return [
-        {"text": w["text"], "x0": w["x0"], "top": w["top"]}
-        for w in page.extract_words(keep_blank_chars=False)
-    ]
+    """Palavras com posição (PyMuPDF). O pdfplumber/pdfminer perdia as duas primeiras linhas
+    de alguns PDFs da DHN (título e número da página), por isso não é usado aqui."""
+    return [{"text": w[4], "x0": w[0], "top": w[1]} for w in page.get_text("words")]
 
 
 def parse_pdf(path: Path) -> ParsedTable:
-    import pdfplumber
+    import pymupdf
 
     headers: list[Header] = []
     days: list[RawDay] = []
     errors: list[str] = []
-    with pdfplumber.open(path) as pdf:
-        for number, page in enumerate(pdf.pages, start=1):
+    with pymupdf.open(path) as pdf:
+        for number, page in enumerate(pdf, start=1):
             try:
                 header, page_days, page_errors = parse_page(extract_page_words(page))
             except ValueError as exc:
@@ -234,10 +257,12 @@ def build_rows(table: ParsedTable) -> list[TideRow]:
     for (month, day_number), day in sorted(seen.items()):
         if not 1 <= day_number <= calendar.monthrange(header.year, month)[1]:
             continue
-        if len(day.readings) not in (3, 4):
-            (errors if len(day.readings) not in (2,) else warnings).append(
-                f"{day_number:02d}/{month:02d}: {len(day.readings)} leituras"
-            )
+        # A DHN lista todo extremo local, inclusive pequenas ondulações (Santos, Itaguaí, Angra:
+        # 5 a 8 por dia). 3 ou 4 é o normal; fora disso só avisa. Zero ou mais de 10 é falha.
+        if not 1 <= len(day.readings) <= MAX_READINGS_PER_DAY:
+            errors.append(f"{day_number:02d}/{month:02d}: {len(day.readings)} leituras")
+        elif len(day.readings) not in (3, 4):
+            warnings.append(f"{day_number:02d}/{month:02d}: {len(day.readings)} leituras")
         for hhmm, height in day.readings:
             hour, minute = int(hhmm[:2]), int(hhmm[2:])
             if hour > 23 or minute > 59:
@@ -369,10 +394,10 @@ def upsert_station_file(path: Path, row: dict[str, str]) -> None:
 
 
 def edition_from_metadata(path: Path) -> int | None:
-    import pdfplumber
+    import pymupdf
 
-    with pdfplumber.open(path) as pdf:
-        title = str((pdf.metadata or {}).get("Title", ""))
+    with pymupdf.open(path) as pdf:
+        title = str((pdf.metadata or {}).get("title", ""))
     match = re.search(r"(\d+)\s*ED", title)
     return int(match.group(1)) if match else None
 
@@ -408,6 +433,8 @@ def main(argv: list[str] | None = None) -> int:
                 print("  ERRO: UF não identificada; use --uf")
             continue
         edition = args.edition or edition_from_metadata(pdf)
+        if edition is None:
+            print("  aviso: edição não identificada nos metadados; use --edition 63 se for o caso")
         write_events(
             args.out_dir / f"{station['id']}-{table.header.year}.csv", rows, station["id"], edition
         )

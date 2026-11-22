@@ -7,6 +7,10 @@ pip install -e ".[ingest]"
 python -m ocean.ingestion.parsers.dhn_tides_pdf pasta/*.pdf --stations data/tide_stations.csv --out-dir data/tides
 ```
 
+Os PDFs são lidos com PyMuPDF (licença AGPL-3.0; só a ingestão o usa, a imagem do servidor
+não). Para converter uma pasta inteira, rode o comando em um laço e confira o código de saída
+de cada PDF: os que falharem mostram `ERRO:` com o motivo e não geram arquivo.
+
 O script lê o cabeçalho de cada PDF (porto, UF, coordenadas, fuso, carta), cria ou atualiza a
 linha da estação e escreve `data/tides/<id>-<ano>.csv`. Preamar e baixa-mar não vêm rotuladas
 na tábua: o tipo é deduzido comparando cada altura com as vizinhas. Erros de leitura (dia
