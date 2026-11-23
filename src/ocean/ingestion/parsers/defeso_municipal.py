@@ -31,6 +31,16 @@ SOURCE_URL = (
     "periodos-de-defeso/defesos-marinhos"
 )
 DEFAULT_SKIP = ("Ucides cordatus",)
+# Normas de abrangência nacional ou por faixa do litoral: entram pelo CSV curado,
+# por UF ou com uf="BR", em vez de serem inferidas apenas da tabela municipal.
+CURATED_SPECIES = (
+    "Ucides cordatus",
+    "Garoupa-verdadeira",
+    "Caranha",
+    "Gurijuba",
+    "Lagosta",
+    "Pargo",
+)
 CLOSURE_FIELDS = [
     "key", "species", "scientific_name", "region", "environment", "prohibition_start",
     "prohibition_end", "year", "fishing_type", "legal_reference", "source_url", "source_type",
@@ -234,7 +244,12 @@ def main(argv: list[str] | None = None) -> int:
         default=default_overrides_path(),
         help="CSV act_id,period,new_period,reason (correções da tabela pela norma)",
     )
-    parser.add_argument("--skip", action="append", default=list(DEFAULT_SKIP), metavar="ESPÉCIE")
+    parser.add_argument(
+        "--skip",
+        action="append",
+        metavar="ESPÉCIE",
+        help="espécie a ignorar (repetível; padrão: as espécies cobertas pelo CSV curado)",
+    )
     args = parser.parse_args(argv)
 
     if not args.table.exists():
@@ -243,7 +258,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         overrides = load_overrides(args.overrides)
         closures, warnings = parse(
-            args.table.read_text(encoding="utf-8"), tuple(args.skip), overrides
+            args.table.read_text(encoding="utf-8"),
+            tuple(args.skip or CURATED_SPECIES),
+            overrides,
         )
     except DefesoTableError as exc:
         print(f"ERRO: {exc}", file=sys.stderr)

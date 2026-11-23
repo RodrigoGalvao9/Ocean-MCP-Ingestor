@@ -102,7 +102,15 @@ def test_main_writes_csvs(tmp_path):
     table = tmp_path / "t.txt"
     table.write_text(SAMPLE, encoding="utf-8")
     out = tmp_path / "out"
-    assert dm.main([str(table), "--out-dir", str(out), "--verified-at", "2026-08-12"]) == 0
+    assert dm.main([
+        str(table),
+        "--out-dir",
+        str(out),
+        "--verified-at",
+        "2026-08-12",
+        "--skip",
+        "Ucides cordatus",
+    ]) == 0
     closures = list(csv.DictReader((out / "defeso_closures.csv").open(encoding="utf-8")))
     areas = list(csv.DictReader((out / "defeso_areas.csv").open(encoding="utf-8")))
     lagosta = next(c for c in closures if c["legal_reference"].endswith("221/2021"))
@@ -124,3 +132,14 @@ def test_real_table_parses_cleanly():
     closures, warnings = dm.parse(text, overrides=dm.load_overrides(dm.default_overrides_path()))
     assert closures and not any("descartado" in w for w in warnings)
     assert all(c.areas for c in closures)
+
+
+def test_cli_default_skips_curated_species(tmp_path):
+    table = tmp_path / "t.txt"
+    table.write_text(SAMPLE, encoding="utf-8")
+    out = tmp_path / "out"
+    assert dm.main([str(table), "--out-dir", str(out)]) == 0
+    refs = [r["legal_reference"] for r in csv.DictReader((out / "defeso_closures.csv").open())]
+    assert len(refs) == 1
+    assert "MMA" in refs[0]
+    assert "14/04" in refs[0]
