@@ -30,7 +30,7 @@ localmente ou hospedado em nuvem.
 | `get_tide_table` | Estação DHN mais próxima, fase e eventos de maré | Disponível |
 | `search_maritime_knowledge` | Busca semântica em conteúdo marítimo | Disponível |
 | `list_knowledge_topics` | Lista os tópicos indexados | Disponível |
-| `get_fishing_closures` | Períodos de defeso | Planejada |
+| `get_fishing_closures` | Defesos em vigor e próximos, por lugar, espécie e data (com a norma) | Disponível |
 | `search_vessels` | Busca de embarcações | Planejada |
 | `find_fish_markets` | Locais para comercialização de pescado | Planejada |
 

@@ -35,3 +35,19 @@ A tabela do MPA tem erros (ex.: camarão da zona I com fim em 15/03 em vez de 15
 `src/ocean/data/defeso_overrides.csv` guarda cada correção com o motivo e a norma. Para conferir
 uma data, consulte o PDF da norma em
 https://www.gov.br/ibama/pt-br/assuntos/biodiversidade/biodiversidade-aquatica/periodos-de-defeso/defesos-marinhos
+
+## Normas nacionais e por faixa do litoral
+
+A tabela do MPA lista somente municípios abrangidos ou limítrofes e não representa toda a área
+coberta por certas normas. Por isso, o parser exclui por padrão garoupa-verdadeira, caranha/sirigado,
+gurijuba, lagosta, pargo e caranguejo-uçá; esses defesos entram pelo CSV curado.
+
+No CSV curado, `uf = BR` representa uma norma nacional válida em todo o litoral. Uma UF com
+`ibge_code` vazio representa o estado inteiro.
+
+## Consulta
+
+A ferramenta `get_fishing_closures(place, species=None, date=None, days_ahead=90)` consulta
+defesos em vigor, próximos defesos e defesos definidos para municípios ou estados específicos.
+Defesos com `year` valem somente no ano informado. Resultado parcial significa que o banco não
+contém cobertura suficiente e não prova que a pesca esteja liberada.
