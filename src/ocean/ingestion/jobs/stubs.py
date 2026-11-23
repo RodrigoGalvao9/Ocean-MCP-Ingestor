@@ -13,6 +13,5 @@ def _not_implemented(name: str, phase: str) -> Callable[[Settings], JobResult]:
     return run
 
 
-mpa_closures = _not_implemented("mpa_closures", "fase 3")
 mpa_registry = _not_implemented("mpa_registry", "fase 4")
 markets_load = _not_implemented("markets_load", "fase 5")

@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from datetime import date
 
 from pydantic import BaseModel
@@ -33,3 +34,14 @@ class FishingVessel(BaseModel):
     vessel_type: str | None = None
     length_m: float | None = None
     authorization_status: str | None = None
+
+
+@dataclass
+class LoadedClosure:
+    closure: FishingClosure
+    areas: dict[tuple[str, str], str | None] = field(default_factory=dict)  # (uf, ibge) -> nome
+
+    @property
+    def natural_key(self) -> tuple[str, str, str, str, int]:
+        c = self.closure
+        return (c.legal_reference, c.species, c.prohibition_start, c.prohibition_end, c.year or 0)
