@@ -10,11 +10,10 @@ on:
         options:
           - ping
           - knowledge_refresh
-          - mpa_closures
           - mpa_registry
           - markets_load
-  # tides_yearly NÃO está aqui de propósito: os CSVs de marés não vão ao Git (ficam só na máquina
-  # de quem os gera), então o job roda localmente (ver README, seção Marés).
+  # tides_yearly e mpa_closures NÃO estão aqui de propósito: os CSVs (marés e defesos) não vão ao
+  # Git (ficam só na máquina de quem os gera), então esses jobs rodam localmente (ver README).
   # Agendamento: descomente cada linha quando o job correspondente estiver implementado.
   # schedule:
   #   - cron: "0 6 * * 1"   # exemplo: toda segunda-feira, 06:00 UTC

@@ -11,8 +11,9 @@ python -m ocean.ingestion.run knowledge_refresh
 python -m ocean.ingestion.run tides_yearly
 ```
 
-Os jobs `mpa_closures`, `mpa_registry` e `markets_load` fazem parte do roadmap e só devem ser
-executados quando estiverem implementados e com os dados correspondentes disponíveis.
+O job `mpa_closures` (defesos) roda localmente com CSVs que não vão ao Git: ver
+[defeso.md](defeso.md). Os jobs `mpa_registry` e `markets_load` fazem parte do roadmap e só devem
+ser executados quando estiverem implementados e com os dados correspondentes disponíveis.
 
 ## GitHub Actions
 
