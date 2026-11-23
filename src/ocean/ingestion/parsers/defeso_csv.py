@@ -7,7 +7,7 @@ from pathlib import Path
 
 from ocean.domain.models.fishing import FishingClosure, LoadedClosure
 
-_UF = re.compile(r"^[A-Z]{2}$")
+_UF = re.compile(r"^[A-Z]{2}$")  # "BR" = norma nacional (vale para todo o litoral)
 _IBGE = re.compile(r"^(\d{7})?$")
 _CLOSURE_COLUMNS = {
     "key", "species", "scientific_name", "region", "environment", "prohibition_start",
