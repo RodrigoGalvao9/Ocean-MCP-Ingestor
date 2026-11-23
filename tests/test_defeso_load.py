@@ -146,3 +146,19 @@ def test_replace_all_refuses_empty_load():
 
     with pytest.raises(ValueError, match="carga vazia"):
         closures.replace_all(None, [])  # type: ignore[arg-type]
+
+
+def test_same_common_name_different_scientific_name_are_distinct(tmp_path):
+    bagres = (
+        "k1,Bagre,Genidens genidens,RS,marine,12-15,03-31,,,IN MMA 17/2004,,official,2026-08-12,\n"
+        "k2,Bagre,Genidens barbus,RS,marine,12-15,03-31,,,IN MMA 17/2004,,official,2026-08-12,\n"
+    )
+    c, a = _write(tmp_path, bagres, "k1,RS,,\nk2,RS,,\n")
+    merged = dc.merge([dc.load_pair(c, a)])
+    assert {m.closure.scientific_name for m in merged} == {"Genidens genidens", "Genidens barbus"}
+
+
+def test_merge_treats_missing_scientific_name_as_same(tmp_path):
+    c1, a1 = _write(tmp_path, LAGOSTA.replace("Panulirus argus", ""), "k1,PE,2611606,Recife\n", "t")
+    c2, a2 = _write(tmp_path, LAGOSTA.replace("Panulirus argus", ""), "k1,RN,,\n", "u")
+    assert len(dc.merge([dc.load_pair(c1, a1), dc.load_pair(c2, a2)])) == 1

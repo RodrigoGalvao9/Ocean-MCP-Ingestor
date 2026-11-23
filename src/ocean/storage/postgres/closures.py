@@ -11,8 +11,9 @@ INSERT INTO fishing_closures (species, scientific_name, region, environment, pro
 VALUES (%(species)s, %(scientific_name)s, %(region)s, %(environment)s, %(prohibition_start)s,
     %(prohibition_end)s, %(year)s, %(fishing_type)s, %(legal_reference)s, %(source_url)s,
     %(source_type)s, %(last_verified_at)s, %(notes)s)
-ON CONFLICT (legal_reference, species, prohibition_start, prohibition_end, COALESCE(year, 0))
-DO UPDATE SET scientific_name = EXCLUDED.scientific_name, region = EXCLUDED.region,
+ON CONFLICT (legal_reference, species, COALESCE(scientific_name, ''), prohibition_start,
+    prohibition_end, COALESCE(year, 0))
+DO UPDATE SET region = EXCLUDED.region,
     environment = EXCLUDED.environment, fishing_type = EXCLUDED.fishing_type,
     source_url = EXCLUDED.source_url, source_type = EXCLUDED.source_type,
     last_verified_at = EXCLUDED.last_verified_at, notes = EXCLUDED.notes, ingested_at = now()

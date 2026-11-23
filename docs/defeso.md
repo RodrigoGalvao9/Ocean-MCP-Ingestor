@@ -8,7 +8,7 @@ Os defesos vêm de duas fontes oficiais e são carregados **da sua máquina para
 | `defeso_closures.csv`, `defeso_areas.csv` | Tabela do MPA por município, lida por `defeso_municipal` |
 | `curated_closures.csv`, `curated_areas.csv` | Curadoria a partir das normas (caranguejo-uçá, camarão zona I em AL/SE) |
 
-Basta um dos pares. Quando um defeso aparece nos dois (mesma norma, espécie e período), valem as
+Basta um dos pares. Quando um defeso aparece nos dois (mesma norma, espécie, nome científico, período e ano), valem as
 áreas somadas e os dados do curado.
 
 ## Comandos (PowerShell, na raiz do projeto)

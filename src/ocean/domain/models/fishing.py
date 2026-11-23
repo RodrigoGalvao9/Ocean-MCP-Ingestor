@@ -42,6 +42,14 @@ class LoadedClosure:
     areas: dict[tuple[str, str], str | None] = field(default_factory=dict)  # (uf, ibge) -> nome
 
     @property
-    def natural_key(self) -> tuple[str, str, str, str, int]:
+    def natural_key(self) -> tuple[str, str, str, str, str, int]:
+        """Mesma norma, espécie (nome popular + científico), período e ano = o mesmo defeso."""
         c = self.closure
-        return (c.legal_reference, c.species, c.prohibition_start, c.prohibition_end, c.year or 0)
+        return (
+            c.legal_reference,
+            c.species,
+            c.scientific_name or "",
+            c.prohibition_start,
+            c.prohibition_end,
+            c.year or 0,
+        )

@@ -16,7 +16,11 @@ from ocean.storage.postgres import closures
 from ocean.storage.postgres.db import connect
 
 log = logging.getLogger(__name__)
-PAIRS = (("defeso_closures.csv", "defeso_areas.csv"), ("curated_closures.csv", "curated_areas.csv"))
+PAIRS = (
+    ("defeso_closures.csv", "defeso_areas.csv"),
+    ("curated_closures.csv", "curated_areas.csv"),
+    ("closures.csv", "areas.csv"),  # versão mesclada, 1 espécie por linha (vence os anteriores)
+)
 
 
 def run(settings: Settings) -> JobResult:
