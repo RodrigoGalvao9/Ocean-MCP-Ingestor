@@ -21,7 +21,7 @@ dependencies = [
 [project.optional-dependencies]
 # Imagem do servidor MCP (Render). Versões herdadas do ocean-rag-mcp, já testadas.
 server = [
-    "fastmcp==4.2.1",
+    "fastmcp==4.2.4",
     "fastmcp-slim==4.2.1",
     "fastembed==0.9.1",
     "qdrant-client==1.20.0",
