@@ -13,7 +13,7 @@ from ocean.domain.services.tides import MIN_SWING_M, significant_extremes, tide_
 from ocean.retrieval.structured import gazetteer
 from ocean.retrieval.structured import tides as tides_repo
 from ocean.shared.provenance import Freshness, MaritimeDataResponse, Status, utcnow
-from ocean.storage.postgres.db import connect
+from ocean.storage.postgres.db import connect_readonly as connect  # servidor: só leitura
 
 log = logging.getLogger(__name__)
 

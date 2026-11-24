@@ -14,7 +14,7 @@ from ocean.retrieval.structured import closures as closures_repo
 from ocean.retrieval.structured import gazetteer
 from ocean.retrieval.structured.gazetteer import normalize
 from ocean.shared.provenance import Freshness, MaritimeDataResponse, Status, utcnow
-from ocean.storage.postgres.db import connect
+from ocean.storage.postgres.db import connect_readonly as connect  # servidor: só leitura
 
 log = logging.getLogger(__name__)
 
